@@ -2,12 +2,12 @@
 # matrix to represent the weights when using ANN
 import numpy as np
 from types import FunctionType
+import random
+from numpy.lib.utils import safe_eval
+import CompromiseGame
 
 
-n_input_neurons = 3
-n_hidden_neurons = 4
-n_output_neurons = 2
-
+#activation functions
 def Relu(inputs):
     output = np.maximum(0, inputs)
     return output
@@ -17,30 +17,26 @@ def Soft_max(inputs):
     probabilities = exp_values / np.sum(exp_values)
     return probabilities
 
-X = np.array([3, 1, -1])
-X2 = np.array([6, 6, 9, 9])
 
-weights1 = np.array([[1, 2, 1],
-                    [3, -2, 4],
-                    [2, -1, -3],
-                    [3, 3, 1],])
-bias_1 = np.array([2, 3, 1, -2])
+# function to create a random lists of shapes and biasses based on the shape of the network
+def init_weights_biases(net_shape, activation_func=None):
+    weights = []
+    biases = []
+    for i,j in zip(net_shape,net_shape[1:]):
+        #print(i,j)
+        weight = np.array(np.random.randint(-5, 5, size=(j, i)))
+        bias = np.random.randint(-3, 3, size=(j, 1))
+       # print(type(bias))
+        weights.append(weight)
+        
+        biases.append(bias)
+    
+    return weights, biases
 
-weights2 = np.array([[2, 1, 1, 2],
-                    [4, 3, 1, -2],
-                    ])
-bias_2 = np.array([3, 1])
 
-
-#input_l = [X1, X2]
-weights_l = [weights1, weights2]
-biases_l = [bias_1, bias_2]
-activation_functions = [Relu, Relu]
-
-print(weights2.shape[1])
-
+# class to calculate a layer of a neural netork
 class Layer:
-
+    
     def __init__(self, weights: np.array, biases: np.array, activation_func: FunctionType ):
         if weights.shape[0] != len(biases):
             raise ValueError
@@ -52,7 +48,7 @@ class Layer:
         weigths_copy = np.copy(weights)
 
     def forward(self, inputs):
-        
+        #print(inputs.shape)
         self.output = np.dot( self.weights, inputs) + self.biases
         return self.activation_func(self.output)
 
@@ -66,6 +62,7 @@ class Layer:
         return self.activation_func
 
 
+
 class NeuralNetwork:
     def __init__(self, weights_list, biases_list, functions):
         if len(weights_list) != len(biases_list) != len(functions):
@@ -74,18 +71,17 @@ class NeuralNetwork:
         self.weights_list = weights_list
         self.biases_list = biases_list
         self.functions = functions
-        self.layers = list(zip(weights_l, biases_l, activation_functions))
+        self.layers = list(zip(weights_list, biases_list, activation_functions))
 
     def propagate(self, inputs):
         prev_outputs = inputs
         for weights, biases, activation_function in self.layers:
             layer_init = Layer(weights, biases, activation_function)
             layer_output = layer_init.forward(prev_outputs)
-            
             if layer_output.shape[0] != weights.shape[0]:
                 raise ValueError
 
-
+            #print(layer_output)
             prev_outputs = layer_output
         return prev_outputs  
 
@@ -93,13 +89,36 @@ class NeuralNetwork:
         return self.layers
 
 
-#layer1 = Layer(weights1, bias_1, Relu)
-#print(layer1.forward(X))
+### class player to play the game
+class Player(CompromiseGame.AbstractPlayer):
+    '''def __init__(self, weights_list, biases_list, functions):
+        self.weights_list = weights_list
+        self.biases_list = biases_list
+        self.functions = functions
+'''
+    def play(self, myState, oppState, myScore, oppScore, turn, length, nPips):
+        print("\nmy state: ", myState)
+        print("\nopp state: ", oppState)
+        print("\nturn: ", turn)
+        print("\nlen: ", length)
 
-#layer2 = Layer(weights2, bias_2, Soft_max)
-#print(layer2.forward(X))
+        return [random.randint(0,2),random.randint(0,2),random.randint(0,2)]
+        
 
-Net1 = NeuralNetwork(weights_l, biases_l, activation_functions)
-outputs = Net1.propagate(X)
-print(outputs)
+    def getNN():
+        pass
 
+
+    @staticmethod
+    def getSpec():
+        pass
+############################################################# MAIN (for testing) #####################################################################################        
+
+X = np.matrix("3; 1; -1")
+
+activation_functions = [Relu, Relu]
+shape = [3,4,3]
+w3,b3 = init_weights_biases(shape)
+Net1 = NeuralNetwork(w3, b3, activation_functions)
+output1 = Net1.propagate(X)
+print(output1)
