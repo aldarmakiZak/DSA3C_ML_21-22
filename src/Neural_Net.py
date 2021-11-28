@@ -1,17 +1,16 @@
-
+# 1d vector to represent the weights when using GA
+# matrix to represent the weights when using ANN
 import numpy as np
 from types import FunctionType
 import random
-from numpy.core.fromnumeric import argmax
 from numpy.lib.utils import safe_eval
-import itertools
+import CompromiseGame
 
 
 #activation functions
 def Relu(inputs):
     output = np.maximum(0, inputs)
     return output
-
 
 def Soft_max(inputs):
     exp_values = np.exp(inputs)
@@ -24,9 +23,12 @@ def init_weights_biases(net_shape, activation_func=None):
     weights = []
     biases = []
     for i,j in zip(net_shape,net_shape[1:]):
-        weight = 0.10 * np.random.rand(j, i)
-        bias = 0.20 * np.random.rand(j, 1)
+        #print(i,j)
+        weight = np.array(np.random.randint(-5, 5, size=(j, i)))
+        bias = np.random.randint(-3, 3, size=(j, 1))
+       # print(type(bias))
         weights.append(weight)
+        
         biases.append(bias)
     
     return weights, biases
@@ -46,6 +48,7 @@ class Layer:
         weigths_copy = np.copy(weights)
 
     def forward(self, inputs):
+        #print(inputs.shape)
         self.output = np.dot( self.weights, inputs) + self.biases
         return self.activation_func(self.output)
 
@@ -68,7 +71,7 @@ class NeuralNetwork:
         self.weights_list = weights_list
         self.biases_list = biases_list
         self.functions = functions
-        self.layers = list(zip(weights_list, biases_list, functions))
+        self.layers = list(zip(weights_list, biases_list, activation_functions))
 
     def propagate(self, inputs):
         prev_outputs = inputs
@@ -87,50 +90,35 @@ class NeuralNetwork:
 
 
 ### class player to play the game
-class Zak_Player():
-    ### THERE IS A PROBLEM WHEN PASSING THE WEIGHTS AND BIASES IN THE CONSTRUCTOR THE PLAYER MOVE DOES NOT CHANGE   
-    '''def __init__(self, weights_list, biases_list, functions=None):
+class Player(CompromiseGame.AbstractPlayer):
+    '''def __init__(self, weights_list, biases_list, functions):
         self.weights_list = weights_list
         self.biases_list = biases_list
-        self.functions = [Relu, Relu]#functions
-        # get all the combination of the moves
-        self.NNet = NeuralNetwork(self.weights_list, self.biases_list, self.functions)
-       # self.possible_moves = [p for p in itertools.product([0, 1, 2], repeat=3)]
+        self.functions = functions
 '''
-    def calc_reward(self, my_score, oppo_score):
-        pass
-        
     def play(self, myState, oppState, myScore, oppScore, turn, length, nPips):
-        mystate_matrix = np.matrix(np.reshape(np.array(myState).flatten(), (27,1))) # get the board status as a matrix to be the input of NN
-        shape = [27, 20, 27]
-        w1,b1 = init_weights_biases(shape)
-        activation_functions = [Relu, Relu]
-        Net1 = NeuralNetwork(w1, b1, activation_functions)
-        #Net1 = NeuralNetwork(self.weights_list, self.biases_list, self.functions)
-        moves = Net1.propagate(mystate_matrix)
-        possible_moves = [p for p in itertools.product([0, 1, 2], repeat=3)] # all possible moves that a player can input (27) moves
-        move = possible_moves[np.argmax(moves)]
-        print("\nmy move is: \n", move)
+        print("\nmy state: ", myState)
+        print("\nopp state: ", oppState)
+        print("\nturn: ", turn)
+        print("\nlen: ", length)
 
-
-        return list(move)
+        return [random.randint(0,2),random.randint(0,2),random.randint(0,2)]
         
 
-    def getNN(self):
-        return self.NNet
+    def getNN():
+        pass
 
 
     @staticmethod
-    def getSpec(self): # return the shape of the input neurons and the output neurons
-        output_shape = np.array(27,27)
+    def getSpec():
+        pass
+############################################################# MAIN (for testing) #####################################################################################        
 
-############################################################# Main (for testing) #####################################################################################        
+X = np.matrix("3; 1; -1")
 
-
-#activation_functions = [Relu, Relu]
-#shape = [3, 4, 3]
-#w3,b3 = init_weights_biases(shape)
-#Net1 = NeuralNetwork(w3, b3, activation_functions)
-#output1 = Net1.propagate(X)
-#print(output1)
-
+activation_functions = [Relu, Relu]
+shape = [3,4,3]
+w3,b3 = init_weights_biases(shape)
+Net1 = NeuralNetwork(w3, b3, activation_functions)
+output1 = Net1.propagate(X)
+print(output1)

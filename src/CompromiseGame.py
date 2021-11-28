@@ -2,7 +2,6 @@ import curses
 import random
 import re
 import math
-import Neural_Net as NN
 
 
 class AbstractPlayer:
@@ -522,8 +521,7 @@ class CompromiseGame:
 
 
 if __name__ == "__main__":
-    #pA = HumanPlayer()
-    pA = NN.Zak_Player()
+    pA = HumanPlayer()
     pB = GreedyPlayer()
     g = CompromiseGame(pA, pB, 30, 5)
     curses.wrapper(g.fancyPlay)
