@@ -88,28 +88,27 @@ class NeuralNetwork:
 
 ### class player to play the game
 class Zak_Player():
-    ### THERE IS A PROBLEM WHEN PASSING THE WEIGHTS AND BIASES IN THE CONSTRUCTOR THE PLAYER MOVE DOES NOT CHANGE   
-    '''def __init__(self, weights_list, biases_list, functions=None):
+       
+    def __init__(self, weights_list, biases_list, functions):
         self.weights_list = weights_list
         self.biases_list = biases_list
-        self.functions = [Relu, Relu]#functions
-        # get all the combination of the moves
-        self.NNet = NeuralNetwork(self.weights_list, self.biases_list, self.functions)
-       # self.possible_moves = [p for p in itertools.product([0, 1, 2], repeat=3)]
-'''
+        self.functions = functions #[Relu, Relu]
+        self.NNet = NeuralNetwork(self.weights_list, self.biases_list, self.functions) # get all the combination of the moves
+        self.possible_moves = [p for p in itertools.product([0, 1, 2], repeat=3)]
+
     def calc_reward(self, my_score, oppo_score):
         pass
         
     def play(self, myState, oppState, myScore, oppScore, turn, length, nPips):
+        #w1,b1 = init_weights_biases(shape)
+        #activation_functions = [Relu, Relu]
+        #Net1 = NeuralNetwork(w1, b1, activation_functions)
+        #possible_moves = [p for p in itertools.product([0, 1, 2], repeat=3)] # all possible moves that a player can input (27) moves
+        Net1 = NeuralNetwork(self.weights_list, self.biases_list, self.functions)
         mystate_matrix = np.matrix(np.reshape(np.array(myState).flatten(), (27,1))) # get the board status as a matrix to be the input of NN
         shape = [27, 20, 27]
-        w1,b1 = init_weights_biases(shape)
-        activation_functions = [Relu, Relu]
-        Net1 = NeuralNetwork(w1, b1, activation_functions)
-        #Net1 = NeuralNetwork(self.weights_list, self.biases_list, self.functions)
         moves = Net1.propagate(mystate_matrix)
-        possible_moves = [p for p in itertools.product([0, 1, 2], repeat=3)] # all possible moves that a player can input (27) moves
-        move = possible_moves[np.argmax(moves)]
+        move = self.possible_moves[np.argmax(moves)]
         print("\nmy move is: \n", move)
 
 
