@@ -109,7 +109,7 @@ class Zak_Player():
         shape = [27, 20, 27]
         moves = Net1.propagate(mystate_matrix)
         move = self.possible_moves[np.argmax(moves)]
-        print("\nmy move is: \n", move)
+        #print("\nmy move is: \n", move)
 
 
         return list(move)
