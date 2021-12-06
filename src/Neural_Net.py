@@ -96,22 +96,14 @@ class Zak_Player():
         self.NNet = NeuralNetwork(self.weights_list, self.biases_list, self.functions) # get all the combination of the moves
         self.possible_moves = [p for p in itertools.product([0, 1, 2], repeat=3)]
 
-    def calc_reward(self, my_score, oppo_score):
-        pass
-        
+
     def play(self, myState, oppState, myScore, oppScore, turn, length, nPips):
-        #w1,b1 = init_weights_biases(shape)
-        #activation_functions = [Relu, Relu]
-        #Net1 = NeuralNetwork(w1, b1, activation_functions)
-        #possible_moves = [p for p in itertools.product([0, 1, 2], repeat=3)] # all possible moves that a player can input (27) moves
         Net1 = NeuralNetwork(self.weights_list, self.biases_list, self.functions)
         mystate_matrix = np.matrix(np.reshape(np.array(myState).flatten(), (27,1))) # get the board status as a matrix to be the input of NN
         shape = [27, 20, 27]
         moves = Net1.propagate(mystate_matrix)
         move = self.possible_moves[np.argmax(moves)]
         #print("\nmy move is: \n", move)
-
-
         return list(move)
         
 
