@@ -27,6 +27,7 @@ def play_games(my_player, oppo_player, games_no): #function to play the game
         
         if result[0] > result[1]:
             myWins += 1
+            my_player.games_won += 1
             #print("You won")
         elif result[0] < result[1]:
             oppoWins += 1
@@ -36,6 +37,7 @@ def play_games(my_player, oppo_player, games_no): #function to play the game
 
         else:
             print("Something is wrong")
+        
         #curses.wrapper(game.fancyPlay)
     #print("My wins: ", myWins)
     #print("Oppo wins: ", oppoWins)
@@ -154,32 +156,70 @@ def create_new_generation(population, fitness_list, gen_size):
     # get elite players from previous generation
     for i in elitism(population, fitness_list, 5):
         i.fitness = 0
+        i.games_won = 0
         new_generation.append(i)
 
     while len(new_generation) < gen_size:
         parent1 = tournament_selection(population, 10)
-        parent2 = tournament_selection(players, 10)
+        parent2 = tournament_selection(population, 10)
         child = crossover(parent1, parent2, 0.1)
         new_generation.append(child)
     
     return new_generation 
 
 
-if __name__== "__main__":
-    games_no = 10
-    population_no = 15
-    mutation_rate = 0.1
-
+def create_evolution(population_size, generations_number, games_num, mutation_rate):
     activation_functions = [nn.Relu, nn.Relu]
-    shape = [27, 3, 3]
+    shape = [27, 50, 27]
 
-    players = generate_players(population_no, shape, activation_functions)
-    result_population = population_play(players, games_no)
-    fitness = calc_fitness(players, result_population)
+    initial_population = generate_players(population_size, shape, activation_functions)
+    first_play = population_play(initial_population, games_num)
+    first_fitness = calc_fitness(initial_population, first_play)
+    generation_no = 1
+    print_info(initial_population, first_fitness, generation_no, games_num)
+
+    while generation_no < generations_number:
+        generation_no +=1
+        #print("Generation: ", generation_no)
+        population = initial_population
+        fitness = first_fitness
+        new_population = create_new_generation(population,fitness,population_size)
+        game_result = population_play(new_population, games_num)
+        new_fitness = calc_fitness(new_population, game_result)
+        print_info(new_population, new_fitness, generation_no, games_num)
+        initial_population = new_population
+        first_fitness = new_fitness
+        #generation_no +=1
+
+
+def print_info(population, fitness, generation, games_number):
+    sorted_fitness, sorted_incides = sort_fitness(fitness)
+
+    print("Generation number: \t", generation)
+    print("Best player fitness: \t", sorted_fitness[-1])
+    print("Best player won games: \t", population[sorted_incides[-1]].games_won)
+    print("Best player Avg win rate: \t", (population[sorted_incides[-1]].games_won)/games_number *100)
+    print("\n\n ")
+
+
+if __name__== "__main__":
+    games_no = 100
+    population_no = 20
+    mutation_rate = 0.1
+    generations_no = 100 
+    activation_functions = [nn.Relu, nn.Relu]
+    shape = [27, 50, 27]
     
-    new_gen = create_new_generation(players,fitness,15)
-    new_gen_play = population_play(new_gen, games_no)
-    new_gen_fitness = calc_fitness(new_gen, new_gen_play)
+    create_evolution(population_no, generations_no, games_no, mutation_rate)
+   
+   
+    # players = generate_players(population_no, shape, activation_functions)
+    # result_population = population_play(players, games_no)
+    # fitness = calc_fitness(players, result_population)
+    
+    # new_gen = create_new_generation(players,fitness,15)
+    # new_gen_play = population_play(new_gen, games_no)
+    # new_gen_fitness = calc_fitness(new_gen, new_gen_play)
     #crossover(players[0], players[1], mutation_rate)
     #tournament_selection(players, 4)
     #sorted_fit, sorted_index = sort_fitness(fitness)
