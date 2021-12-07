@@ -93,6 +93,7 @@ class Zak_Player():
         self.weights_list = weights_list
         self.biases_list = biases_list
         self.functions = functions #[Relu, Relu]
+        self.fitness = None
         self.NNet = NeuralNetwork(self.weights_list, self.biases_list, self.functions) # get all the combination of the moves
         self.possible_moves = [p for p in itertools.product([0, 1, 2], repeat=3)]
 
