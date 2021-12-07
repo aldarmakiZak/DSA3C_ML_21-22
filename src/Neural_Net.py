@@ -6,6 +6,8 @@ from numpy.core.fromnumeric import argmax
 from numpy.lib.utils import safe_eval
 import itertools
 
+from numpy.random.mtrand import f
+
 
 #activation functions
 def Relu(inputs):
@@ -85,6 +87,19 @@ class NeuralNetwork:
     def getLayers(self):
         return self.layers
 
+    #flatten the weights array to be used in the GA
+    def get_weights(self):
+        # flattened_weights = np.array([])
+        # for i in self.weights_list:
+        #     flattened_weights = np.append(flattened_weights, i.flatten())
+        return self.weights_list #flattened_weights.flatten()
+
+    def get_biases(self):
+        # flattened_biases = np.array([])
+        # for i in self.biases_list:
+        #     flattened_biases = np.append(flattened_biases, i.flatten())
+        return self.biases_list #flattened_biases.flatten()
+
 
 ### class player to play the game
 class Zak_Player():
@@ -119,10 +134,12 @@ class Zak_Player():
 ############################################################# Main (for testing) #####################################################################################        
 
 
-#activation_functions = [Relu, Relu]
-#shape = [3, 4, 3]
-#w3,b3 = init_weights_biases(shape)
-#Net1 = NeuralNetwork(w3, b3, activation_functions)
-#output1 = Net1.propagate(X)
-#print(output1)
+# activation_functions = [Relu, Relu]
+# shape = [3, 4, 3]
+# w3,b3 = init_weights_biases(shape)
+# Net1 = NeuralNetwork(w3, b3, activation_functions)
+# X = np.matrix("3; 3; 3")
+# output1 = Net1.propagate(X)
+# Net1.get_biases()
+# #print(output1)
 
