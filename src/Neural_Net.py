@@ -26,8 +26,8 @@ def init_weights_biases(net_shape, activation_func=None):
     weights = []
     biases = []
     for i,j in zip(net_shape,net_shape[1:]):
-        weight = 0.10 * np.random.rand(j, i)
-        bias = 0.20 * np.random.rand(j, 1)
+        weight = np.random.rand(j, i) # 0.10 *
+        bias = np.random.rand(j, 1) # 0.20 *
         weights.append(weight)
         biases.append(bias)
     
@@ -87,18 +87,13 @@ class NeuralNetwork:
     def getLayers(self):
         return self.layers
 
-    #flatten the weights array to be used in the GA
+    # return weights to be flattened in the genetic algorithms
     def get_weights(self):
-        # flattened_weights = np.array([])
-        # for i in self.weights_list:
-        #     flattened_weights = np.append(flattened_weights, i.flatten())
-        return self.weights_list #flattened_weights.flatten()
-
+        return self.weights_list 
+    
+    # return biases to be flattened in the genetic algorithms
     def get_biases(self):
-        # flattened_biases = np.array([])
-        # for i in self.biases_list:
-        #     flattened_biases = np.append(flattened_biases, i.flatten())
-        return self.biases_list #flattened_biases.flatten()
+        return self.biases_list 
 
 
 ### class player to play the game
@@ -116,9 +111,11 @@ class Zak_Player():
 
     def play(self, myState, oppState, myScore, oppScore, turn, length, nPips):
         Net1 = NeuralNetwork(self.weights_list, self.biases_list, self.functions)
-        mystate_matrix = np.matrix(np.reshape(np.array(myState).flatten(), (27,1))) # get the board status as a matrix to be the input of NN
+        my_state_matrix = np.matrix(np.reshape(np.array(myState).flatten(), (27,1))) # get the board status as a matrix to be the input of NN
+        oppo_state_matrix = np.matrix(np.reshape(np.array(oppState).flatten(), (27,1))) # get the board status as a matrix to be the input of NN
+
         shape = [27, 20, 27]
-        moves = Net1.propagate(mystate_matrix)
+        moves = Net1.propagate(my_state_matrix-oppo_state_matrix)
         move = self.possible_moves[np.argmax(moves)]
         #print("\nmy move is: \n", move)
         return list(move)

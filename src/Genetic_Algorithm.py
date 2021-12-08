@@ -3,7 +3,6 @@ import CompromiseGame as cc
 import Neural_Net as nn
 import numpy as np
 import random
-import itertools
 
 # generate a population of player objcets
 def generate_players(players_no, shape, ac_func):
@@ -27,7 +26,7 @@ def play_games(my_player, oppo_player, games_no): #function to play the game
         
         if result[0] > result[1]:
             myWins += 1
-            my_player.games_won += 1
+            #my_player.games_won += 1
             #print("You won")
         elif result[0] < result[1]:
             oppoWins += 1
@@ -37,7 +36,7 @@ def play_games(my_player, oppo_player, games_no): #function to play the game
 
         else:
             print("Something is wrong")
-        
+    my_player.games_won = myWins
         #curses.wrapper(game.fancyPlay)
     #print("My wins: ", myWins)
     #print("Oppo wins: ", oppoWins)
@@ -93,7 +92,7 @@ def tournament_selection(population_list, size):
 
 
 #Get the fittest individuals from the population to be passed to the next generation 
-def elitism(population, fitness, size_percentage= 5):
+def elitism(population, fitness, size_percentage= 20):
     sorted_fitnesses, sorted_indices = sort_fitness(fitness)
     elite_list = sorted_indices[-round(len(sorted_indices) * size_percentage/100) :]
     chosen_population = [population[x] for x in elite_list]
@@ -144,7 +143,7 @@ def crossover(parent1, parent2, mutation_rate=0.1):
 def mutation(array_list, rate):    
     for i in array_list:
         mask = np.random.choice([0, 1], size=i.shape, p=((1 - rate), rate)).astype(bool) # crate a random masks array to be used in the mutation inspired from https://stackoverflow.com/questions/31389481/numpy-replace-random-elements-in-an-array
-        random_values = 0.10 * np.random.rand(i.shape[0],i.shape[1])
+        random_values = np.random.rand(i.shape[0],i.shape[1])
         i[mask] += random_values[mask]
 
     return array_list
@@ -154,14 +153,14 @@ def create_new_generation(population, fitness_list, gen_size):
     new_generation = []
 
     # get elite players from previous generation
-    for i in elitism(population, fitness_list, 5):
+    for i in elitism(population, fitness_list, 20):
         i.fitness = 0
         i.games_won = 0
         new_generation.append(i)
 
     while len(new_generation) < gen_size:
-        parent1 = tournament_selection(population, 10)
-        parent2 = tournament_selection(population, 10)
+        parent1 = tournament_selection(population, 6)
+        parent2 = tournament_selection(population, 6)
         child = crossover(parent1, parent2, 0.1)
         new_generation.append(child)
     
@@ -194,21 +193,27 @@ def create_evolution(population_size, generations_number, games_num, mutation_ra
 
 def print_info(population, fitness, generation, games_number):
     sorted_fitness, sorted_incides = sort_fitness(fitness)
+    
+    wins = []
+    for i in population:
+        wins.append(i.games_won/games_number *100)
 
+    wins_avg = sum(wins)/len(wins)
     print("Generation number: \t", generation)
     print("Best player fitness: \t", sorted_fitness[-1])
     print("Best player won games: \t", population[sorted_incides[-1]].games_won)
     print("Best player Avg win rate: \t", (population[sorted_incides[-1]].games_won)/games_number *100)
+    print("Population win rate", wins_avg)
     print("\n\n ")
 
 
 if __name__== "__main__":
-    games_no = 100
+    games_no = 50
     population_no = 20
     mutation_rate = 0.1
-    generations_no = 100 
+    generations_no = 1000 
     activation_functions = [nn.Relu, nn.Relu]
-    shape = [27, 50, 27]
+    shape = [27, 54, 27]
     
     create_evolution(population_no, generations_no, games_no, mutation_rate)
    
