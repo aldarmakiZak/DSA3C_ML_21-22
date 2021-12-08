@@ -104,7 +104,7 @@ class Zak_Player():
         self.biases_list = biases_list
         self.functions = functions #[Relu, Relu]
         self.fitness = None
-        self.games_won = 0
+        self.games_won = None
         self.NNet = NeuralNetwork(self.weights_list, self.biases_list, self.functions) # get all the combination of the moves
         self.possible_moves = [p for p in itertools.product([0, 1, 2], repeat=3)]
 
@@ -114,7 +114,7 @@ class Zak_Player():
         my_state_matrix = np.matrix(np.reshape(np.array(myState).flatten(), (27,1))) # get the board status as a matrix to be the input of NN
         oppo_state_matrix = np.matrix(np.reshape(np.array(oppState).flatten(), (27,1))) # get the board status as a matrix to be the input of NN
 
-        shape = [27, 20, 27]
+        #shape = [27, 20, 27]
         moves = Net1.propagate(my_state_matrix-oppo_state_matrix)
         move = self.possible_moves[np.argmax(moves)]
         #print("\nmy move is: \n", move)
