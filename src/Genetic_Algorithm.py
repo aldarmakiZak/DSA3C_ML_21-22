@@ -116,7 +116,7 @@ def crossover(parent1, parent2, mutation_rate=0.1):
     child_flattened_biases = []
     
     child_weights = []
-    child_biasess = []
+    child_biases = []
     for i in range(len(parent1_weights)):
 
         parent1_flattened_weights.append(parent1_weights[i].flatten())
@@ -132,11 +132,19 @@ def crossover(parent1, parent2, mutation_rate=0.1):
         child_flattened_weights.append(np.concatenate((parent1_flattened_weights[i][:weights_crossover_point], parent2_flattened_weights[i][weights_crossover_point:])))
         child_flattened_biases.append(np.concatenate((parent1_flattened_biases[i][:biases_crossover_point], parent2_flattened_biases[i][biases_crossover_point:])))
 
-        child_biasess.append(np.array(child_flattened_biases[i]).reshape((parent1_biases[i].shape)))
+        child_biases.append(np.array(child_flattened_biases[i]).reshape((parent1_biases[i].shape)))
         child_weights.append(np.array(child_flattened_weights[i]).reshape((parent1_weights[i].shape)))
 
 
-    child = nn.Zak_Player(mutation(child_weights, mutation_rate), mutation(child_biasess, mutation_rate), [nn.Relu, nn.Relu])
+    child = nn.Zak_Player(mutation(child_weights, mutation_rate), mutation(child_biases, mutation_rate), [nn.Relu, nn.Relu])
+    return child
+
+
+def create_child_copy(parent, mutation_rate=0.1):
+    child_weights = parent.getNN().get_weights()
+    child_biases = parent.getNN().get_biases()
+
+    child = nn.Zak_Player(mutation(child_weights, mutation_rate), mutation(child_biases, mutation_rate), [nn.Relu, nn.Relu])
     return child
 
 
@@ -149,25 +157,32 @@ def mutation(array_list, rate):
     return array_list
 
 
-def create_new_generation(population, fitness_list, gen_size):
+def create_new_generation(population, fitness_list, gen_size,crossover_rate, mutation_rate):
     new_generation = []
-
+    crossover_prbability = 0.8
     # get elite players from previous generation
     for i in elitism(population, fitness_list, 20):
         i.fitness = 0
         i.games_won = 0
         new_generation.append(i)
 
+    
     while len(new_generation) < gen_size:
+        random_index = random.uniform(0,1)
         parent1 = tournament_selection(population, 6)
         parent2 = tournament_selection(population, 6)
-        child = crossover(parent1, parent2, 0.1)
+        
+        if random_index <= crossover_rate:
+            child = crossover(parent1, parent2, 0.1)
+        else:
+            child = create_child_copy(parent1, 0.1)
+        
         new_generation.append(child)
     
     return new_generation 
 
 
-def create_evolution(population_size, generations_number, games_num, mutation_rate):
+def create_evolution(population_size, generations_number, games_num, crossover_rate, mutation_rate):
     activation_functions = [nn.Relu, nn.Relu]
     shape = [27, 50, 27]
 
@@ -182,7 +197,7 @@ def create_evolution(population_size, generations_number, games_num, mutation_ra
         #print("Generation: ", generation_no)
         population = initial_population
         fitness = first_fitness
-        new_population = create_new_generation(population,fitness,population_size)
+        new_population = create_new_generation(population,fitness,population_size, crossover_rate, mutation_rate)
         game_result = population_play(new_population, games_num)
         new_fitness = calc_fitness(new_population, game_result)
         print_info(new_population, new_fitness, generation_no, games_num)
@@ -210,12 +225,15 @@ def print_info(population, fitness, generation, games_number):
 if __name__== "__main__":
     games_no = 50
     population_no = 20
-    mutation_rate = 0.1
     generations_no = 1000 
+    
+    mutation_rate = 0.1
+    crossover_rate = 0.5
+
     activation_functions = [nn.Relu, nn.Relu]
     shape = [27, 54, 27]
     
-    create_evolution(population_no, generations_no, games_no, mutation_rate)
+    create_evolution(population_no, generations_no, games_no, crossover_rate, mutation_rate)
    
    
     # players = generate_players(population_no, shape, activation_functions)
