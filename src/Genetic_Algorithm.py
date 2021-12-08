@@ -164,7 +164,7 @@ def create_new_generation(population, fitness_list, gen_size, activation_functio
     new_generation = []
     
     # get elite players from previous generation
-    for i in elitism(population, fitness_list, 30):
+    for i in elitism(population, fitness_list, 20):
         i.fitness = 0
         i.games_won = 0
         new_generation.append(i)
@@ -186,8 +186,8 @@ def create_new_generation(population, fitness_list, gen_size, activation_functio
 
 
 def create_evolution(population_size, generations_number, games_num, crossover_rate, mutation_rate):
-    activation_functions = [nn.Relu, nn.Relu, nn.Relu]
-    shape = [27, 50, 50, 27]
+    activation_functions = [nn.Relu, nn.Relu]
+    shape = [27, 50, 27]
 
     initial_population = generate_players(population_size, shape, activation_functions)
     initial_population_results = population_play(initial_population, games_num)
@@ -262,9 +262,9 @@ if __name__== "__main__":
     population_no = 20
     generations_no = 1000 
     mutation_rate = 0.02
-    crossover_rate = 0.9
+    crossover_rate = 1
 
-    shape = [27, 50, 27]
+    shape = [27, 100, 27]
     
     create_evolution(population_no, generations_no, games_no, crossover_rate, mutation_rate)
     #my_best = load_best_player("best_player")
