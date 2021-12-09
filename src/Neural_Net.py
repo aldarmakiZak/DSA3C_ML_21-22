@@ -5,6 +5,7 @@ import random
 from numpy.core.fromnumeric import argmax
 from numpy.lib.utils import safe_eval
 import itertools
+import copy
 
 from numpy.random.mtrand import f
 
@@ -16,7 +17,7 @@ def Relu(inputs):
 
 
 def Soft_max(inputs):
-    exp_values = np.exp(inputs)
+    exp_values = np.exp(inputs - np.max(inputs, axis=0))
     probabilities = exp_values / np.sum(exp_values)
     return probabilities
 
@@ -37,15 +38,14 @@ def init_weights_biases(net_shape, activation_func=None):
 # class to calculate a layer of a neural netork
 class Layer:
     
-    def __init__(self, weights: np.array, biases: np.array, activation_func: FunctionType ):
+    def __init__(self, weights: np.matrix, biases: np.matrix, activation_func: FunctionType ):
         if weights.shape[0] != len(biases):
-            raise ValueError
+            raise ValueError(" ValueError the shape of the layer inputs in wrong")
 
-        self.weights = weights
-        self.biases = biases
+        self.weights = copy.deepcopy(weights)
+        self.biases = copy.deepcopy(biases)
         self.activation_func = activation_func
         
-        weigths_copy = np.copy(weights)
 
     def forward(self, inputs):
         self.output = np.dot( self.weights, inputs) + self.biases
@@ -63,24 +63,25 @@ class Layer:
 
 
 class NeuralNetwork:
-    def __init__(self, weights_list, biases_list, functions):
-        if len(weights_list) != len(biases_list) != len(functions):
-            raise ValueError
+    def __init__(self, weights_list: np.array, biases_list: np.array, functions):
+        if len(weights_list) != len(biases_list) or len(biases_list) != len(functions):
+            raise ValueError(" ValueError the shapes of the neural network inputs is not valid ")
         
         self.weights_list = weights_list
         self.biases_list = biases_list
         self.functions = functions
-        self.layers = list(zip(weights_list, biases_list, functions))
+        self.layers = []
+
+        for weights, biases, activation_function in list(zip(self.weights_list, self.biases_list, self.functions)): # Create layer from the weights and biases lists
+             self.layers.append(Layer(weights, biases, activation_function))
 
     def propagate(self, inputs):
         prev_outputs = inputs
-        for weights, biases, activation_function in self.layers:
-            layer_init = Layer(weights, biases, activation_function)
-            layer_output = layer_init.forward(prev_outputs)
-            if layer_output.shape[0] != weights.shape[0]:
-                raise ValueError
-
-            #print(layer_output)
+        for layer in self.layers:
+            layer_output = layer.forward(prev_outputs)
+            if layer_output.shape[0] != layer.weights.shape[0]:
+                raise ValueError(" ValueError the shapes of the neural network inputs is not valid ")
+            
             prev_outputs = layer_output
         return prev_outputs  
 
@@ -97,7 +98,7 @@ class NeuralNetwork:
 
 
 ### class player to play the game
-class Zak_Player():
+class NNPlayer():
        
     def __init__(self, weights_list, biases_list, functions):
         self.weights_list = weights_list
@@ -105,19 +106,17 @@ class Zak_Player():
         self.functions = functions #[Relu, Relu]
         self.fitness = None
         self.games_won = None
-        self.NNet = NeuralNetwork(self.weights_list, self.biases_list, self.functions) # get all the combination of the moves
-        self.possible_moves = [p for p in itertools.product([0, 1, 2], repeat=3)]
+        self.NNet = NeuralNetwork(self.weights_list, self.biases_list, self.functions) 
+        self.possible_moves = [p for p in itertools.product([0, 1, 2], repeat=3)] # get all the combination of the possible moves
 
 
     def play(self, myState, oppState, myScore, oppScore, turn, length, nPips):
-        Net1 = NeuralNetwork(self.weights_list, self.biases_list, self.functions)
+        #Net1 = NeuralNetwork(self.weights_list, self.biases_list, self.functions)
         my_state_matrix = np.matrix(np.reshape(np.array(myState).flatten(), (27,1))) # get the board status as a matrix to be the input of NN
         oppo_state_matrix = np.matrix(np.reshape(np.array(oppState).flatten(), (27,1))) # get the board status as a matrix to be the input of NN
 
-        #shape = [27, 20, 27]
-        moves = Net1.propagate(my_state_matrix-oppo_state_matrix)
+        moves = self.NNet.propagate(my_state_matrix-oppo_state_matrix)
         move = self.possible_moves[np.argmax(moves)]
-        #print("\nmy move is: \n", move)
         return list(move)
         
 
@@ -126,9 +125,8 @@ class Zak_Player():
 
 
     @staticmethod
-    def getSpec(self): # return the shape of the input neurons and the output neurons
-        output_shape = np.array(27,27)
-
+    def getSpecs(): # return the shape of the input neurons and the output neurons
+        return (27,27)
 ############################################################# Main (for testing) #####################################################################################        
 
 

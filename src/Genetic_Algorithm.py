@@ -6,18 +6,20 @@ import numpy as np
 import random
 import copy
 import pickle
+
+
 # generate a population of player objcets
 def generate_players(players_no, shape, ac_func):
     my_players = []
 
     for i in range(players_no):
         w,b = nn.init_weights_biases(shape)
-        my_players.append(nn.Zak_Player(w, b, ac_func))
+        my_players.append(nn.NNPlayer(w, b, ac_func))
 
     return my_players
 
 
-def play_games(my_player, oppo_player, games_no): #function to play the game
+def play_games(my_player, oppo_player, games_no): #function to play number of games for each player
     myWins = 0
     oppoWins = 0
     results_list = []
@@ -39,15 +41,11 @@ def play_games(my_player, oppo_player, games_no): #function to play the game
         else:
             print("Something is wrong")
     my_player.games_won = myWins
-        #curses.wrapper(game.fancyPlay)
-    #print("My wins: ", myWins)
-    #print("Oppo wins: ", oppoWins)
-    #winrate = myWins/games_no * 100
-    #print(winrate)
+
     return results_list
 
 
-# function to make each player in the population play x numbers of games
+# function to make each player in a population play x numbers of games
 def population_play(players, games_no):
     population_result_list = []
     for i, player in enumerate(players):
@@ -73,9 +71,9 @@ def calc_fitness(players, results):
     return players_fitness
 
 
-# return sorted fitness and their previous indices
+# return sorted fitness and their indices indices
 def sort_fitness(fitness_list):
-    fitness_index = sorted(range(len(fitness_list)), key=lambda k:fitness_list[k])
+   # fitness_index = sorted(range(len(fitness_list)), key=lambda k:fitness_list[k])
     fitness_sorted = np.sort(fitness_list)
     fitness_sorted_indices = np.argsort(fitness_list)
     return fitness_sorted, fitness_sorted_indices
@@ -139,25 +137,25 @@ def crossover(parent1, parent2, activation_functions, mutation_rate=0.1):
         child_weights.append(np.array(child_flattened_weights[i]).reshape((parent1_weights[i].shape)))
 
 
-    child = nn.Zak_Player(mutation(child_weights, mutation_rate), mutation(child_biases, mutation_rate), activation_functions)
+    child = nn.NNPlayer(mutation(child_weights, mutation_rate), mutation(child_biases, mutation_rate), activation_functions)
     return child
 
 
-def create_child_copy(parent, activation_functions, mutation_rate=0.1):
+def create_child_copy(parent, activation_functions, mutation_rate=0.1): # asexual reproduction
     child_weights = parent.getNN().get_weights()
     child_biases = parent.getNN().get_biases()
 
-    child = nn.Zak_Player(mutation(child_weights, mutation_rate), mutation(child_biases, mutation_rate), activation_functions)
+    child = nn.NNPlayer(mutation(child_weights, mutation_rate), mutation(child_biases, mutation_rate), activation_functions)
     return child
 
 
-def mutation(array_list, rate):    
-    for i in array_list:
+def mutation(arrays_list, rate):    
+    for i in arrays_list:
         mask = np.random.choice([0, 1], size=i.shape, p=((1 - rate), rate)).astype(bool) # crate a random masks array to be used in the mutation inspired from https://stackoverflow.com/questions/31389481/numpy-replace-random-elements-in-an-array
         random_values = np.random.rand(i.shape[0],i.shape[1])
         i[mask] += random_values[mask]
 
-    return array_list
+    return arrays_list
 
 
 def create_new_generation(population, fitness_list, gen_size, activation_functions, crossover_rate, mutation_rate):
@@ -172,8 +170,8 @@ def create_new_generation(population, fitness_list, gen_size, activation_functio
     
     while len(new_generation) < gen_size:
         random_index = random.uniform(0, 1)
-        parent1 = tournament_selection(population, 6)
-        parent2 = tournament_selection(population, 6)
+        parent1 = tournament_selection(population, 4)
+        parent2 = tournament_selection(population, 4)
         
         if random_index <= crossover_rate:
             child = crossover(parent1, parent2, activation_functions,mutation_rate)
@@ -186,8 +184,8 @@ def create_new_generation(population, fitness_list, gen_size, activation_functio
 
 
 def create_evolution(population_size, generations_number, games_num, crossover_rate, mutation_rate):
-    activation_functions = [nn.Relu, nn.Relu]
-    shape = [27, 50, 27]
+    activation_functions = [nn.Relu, nn.Soft_max]
+    shape = [27, 100, 27]
 
     initial_population = generate_players(population_size, shape, activation_functions)
     initial_population_results = population_play(initial_population, games_num)
@@ -202,7 +200,8 @@ def create_evolution(population_size, generations_number, games_num, crossover_r
         population = initial_population
         sorted_fitness, sorted_incides = sort_fitness(fitness)
         
-        if best_player is None or best_player.fitness < population[sorted_incides[-1]].fitness:
+        if best_player is None or best_player.fitness < population[sorted_incides[-1]].fitness: #         if best_player is None or best_player.fitness < population[sorted_incides[-1]].fitness:
+
             best_player = copy.deepcopy(population[sorted_incides[-1]])
             print(f"Best Player Fitness: {best_player.fitness}")
             save_best_player(population[sorted_incides[-1]])
@@ -241,7 +240,7 @@ def save_best_player(player):
                         "Biases": player_biases,
                         "Activation_functions": player_activation}
 
-    player_file = open("best_player", "wb")
+    player_file = open("testing_player/best1_random_player", "wb")
     pickle.dump(palyer_attributes, player_file)
     player_file.close()
 
@@ -250,7 +249,7 @@ def save_best_player(player):
 def load_best_player(player_file):
     f = open(player_file,"rb")
     player_attributes = pickle.load(f)
-    best_player = nn.Zak_Player(player_attributes["Weights"], player_attributes["Biases"], player_attributes["Activation_functions"])
+    best_player = nn.NNPlayer(player_attributes["Weights"], player_attributes["Biases"], player_attributes["Activation_functions"])
     best_player
     f.close()
 
@@ -259,8 +258,8 @@ def load_best_player(player_file):
 
 if __name__== "__main__":
     games_no = 50
-    population_no = 20
-    generations_no = 1000 
+    population_no = 50
+    generations_no = 2000 
     mutation_rate = 0.02
     crossover_rate = 1
 
