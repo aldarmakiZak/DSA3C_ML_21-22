@@ -2,7 +2,7 @@ import curses
 import random
 import re
 import math
-import Neural_Net as NN
+#import Neural_Net as NN
 
 
 class AbstractPlayer:
@@ -520,7 +520,7 @@ class CompromiseGame:
         stdscr.getkey()
 
 
-
+'''
 if __name__ == "__main__":
     #pA = HumanPlayer()
     pA = NN.Zak_Player()
@@ -539,3 +539,4 @@ if __name__ == "__main__":
         # else:
             # score[1] += 1
     # print(score)
+'''
