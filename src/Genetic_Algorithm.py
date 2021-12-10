@@ -1,5 +1,5 @@
-from numpy.lib.function_base import gradient
-from numpy.random.mtrand import weibull
+# This program is for training the compromise game player using genetic algorithms
+
 import CompromiseGame as cc
 import Neural_Net as nn
 import numpy as np
@@ -19,7 +19,8 @@ def generate_players(players_no, shape, ac_func):
     return my_players
 
 
-def play_games(my_player, oppo_player, games_no): #function to play number of games for each player
+# function to play number of games for each player
+def play_games(my_player, oppo_player, games_no):
     myWins = 0
     oppoWins = 0
     results_list = []
@@ -30,11 +31,10 @@ def play_games(my_player, oppo_player, games_no): #function to play number of ga
         
         if result[0] > result[1]:
             myWins += 1
-            #my_player.fitness += 10
-            #print("You won")
+
         elif result[0] < result[1]:
             oppoWins += 1
-            #print("Computer won")
+
         elif result[0] == result[1]:
             print("draw")
 
@@ -55,7 +55,7 @@ def population_play(players, games_no):
     return population_result_list
 
 
-# function to  calulate the total fitness of each player in the games
+# function to calulate the total fitness of each player in the games
 def calc_fitness(players, results):
     players_fitness = []
 
@@ -65,15 +65,14 @@ def calc_fitness(players, results):
             score = game[0] - game[1]
             player_score += score
         players[i].fitness = player_score # store the fitness on the player object   
-        players[i].fitness += players[i].games_won * 10
-        players_fitness.append(player_score + players[i].games_won * 10) 
+        players[i].fitness += players[i].games_won * 30
+        players_fitness.append(player_score + players[i].games_won * 30) 
     
     return players_fitness
 
 
 # return sorted fitness and their indices indices
 def sort_fitness(fitness_list):
-   # fitness_index = sorted(range(len(fitness_list)), key=lambda k:fitness_list[k])
     fitness_sorted = np.sort(fitness_list)
     fitness_sorted_indices = np.argsort(fitness_list)
     return fitness_sorted, fitness_sorted_indices
@@ -100,6 +99,7 @@ def elitism(population, fitness, size_percentage= 20):
     return chosen_population
 
 
+# this function gets the two players weights and biases and return a new player from the combination of both 
 def crossover(parent1, parent2, activation_functions, mutation_rate=0.1):
     parent1_weights = parent1.getNN().get_weights()
     parent1_biases = parent1.getNN().get_biases()
@@ -120,18 +120,17 @@ def crossover(parent1, parent2, activation_functions, mutation_rate=0.1):
     child_biases = []
     for i in range(len(parent1_weights)):
 
-        parent1_flattened_weights.append(parent1_weights[i].flatten())
+        parent1_flattened_weights.append(parent1_weights[i].flatten()) # flatten the weights to be 1d array
         parent1_flattened_biases.append(parent1_biases[i].flatten())
 
         parent2_flattened_weights.append(parent2_weights[i].flatten())
         parent2_flattened_biases.append(parent2_biases[i].flatten())    
 
-        weights_crossover_point = random.randint(0, len(parent1_flattened_weights[i])-1)
-        biases_crossover_point = random.randint(0, len(parent1_flattened_biases[i])-1)
+        weights_crossover_point = random.randint(0, len(parent1_flattened_weights[i])-1) # choose a random number to be the crossover point for weights
+        biases_crossover_point = random.randint(0, len(parent1_flattened_biases[i])-1)  # choose a random number to be the crossover point for biases
         
-        #print(biases_crossover_point)
-        child_flattened_weights.append(np.concatenate((parent1_flattened_weights[i][:weights_crossover_point], parent2_flattened_weights[i][weights_crossover_point:])))
-        child_flattened_biases.append(np.concatenate((parent1_flattened_biases[i][:biases_crossover_point], parent2_flattened_biases[i][biases_crossover_point:])))
+        child_flattened_weights.append(np.concatenate((parent1_flattened_weights[i][:weights_crossover_point], parent2_flattened_weights[i][weights_crossover_point:]))) #get the first portion of the weights from paren1 and the second from parent2
+        child_flattened_biases.append(np.concatenate((parent1_flattened_biases[i][:biases_crossover_point], parent2_flattened_biases[i][biases_crossover_point:]))) #get the first portion of the biases from paren1 and the second from parent2
 
         child_biases.append(np.array(child_flattened_biases[i]).reshape((parent1_biases[i].shape)))
         child_weights.append(np.array(child_flattened_weights[i]).reshape((parent1_weights[i].shape)))
@@ -141,7 +140,8 @@ def crossover(parent1, parent2, activation_functions, mutation_rate=0.1):
     return child
 
 
-def create_child_copy(parent, activation_functions, mutation_rate=0.1): # asexual reproduction
+# asexual reproduction.. copy the parent weights and biases to the child
+def create_child_copy(parent, activation_functions, mutation_rate=0.1): 
     child_weights = parent.getNN().get_weights()
     child_biases = parent.getNN().get_biases()
 
@@ -153,11 +153,12 @@ def mutation(arrays_list, rate):
     for i in arrays_list:
         mask = np.random.choice([0, 1], size=i.shape, p=((1 - rate), rate)).astype(bool) # crate a random masks array to be used in the mutation inspired from https://stackoverflow.com/questions/31389481/numpy-replace-random-elements-in-an-array
         random_values = np.random.rand(i.shape[0],i.shape[1])
-        i[mask] += random_values[mask]
+        i[mask] += random_values[mask] # add from the random values based on the mask
 
     return arrays_list
 
 
+# function to create a new generation for the genetic algorithms 
 def create_new_generation(population, fitness_list, gen_size, activation_functions, crossover_rate, mutation_rate):
     new_generation = []
     
@@ -167,13 +168,13 @@ def create_new_generation(population, fitness_list, gen_size, activation_functio
         i.games_won = 0
         new_generation.append(i)
 
-    
+    # create the children
     while len(new_generation) < gen_size:
         random_index = random.uniform(0, 1)
-        parent1 = tournament_selection(population, 4)
+        parent1 = tournament_selection(population, 4) # select the parents based on tournament selection
         parent2 = tournament_selection(population, 4)
         
-        if random_index <= crossover_rate:
+        if random_index <= crossover_rate: # choose which method to use for breading
             child = crossover(parent1, parent2, activation_functions,mutation_rate)
         else:
             child = create_child_copy(parent1, activation_functions, mutation_rate)
@@ -183,11 +184,12 @@ def create_new_generation(population, fitness_list, gen_size, activation_functio
     return new_generation 
 
 
+# function to run the evolution cycles
 def create_evolution(population_size, generations_number, games_num, crossover_rate, mutation_rate):
-    activation_functions = [nn.Relu, nn.Soft_max]
-    shape = [27, 100, 27]
+    activation_functions = [nn.Relu, nn.Relu]
+    shape = [27,100, 27]
 
-    initial_population = generate_players(population_size, shape, activation_functions)
+    initial_population = generate_players(population_size, shape, activation_functions) #create the initial population using ramdom weights
     initial_population_results = population_play(initial_population, games_num)
     fitness = calc_fitness(initial_population, initial_population_results)
     generation_no = 1
@@ -200,13 +202,11 @@ def create_evolution(population_size, generations_number, games_num, crossover_r
         population = initial_population
         sorted_fitness, sorted_incides = sort_fitness(fitness)
         
-        if best_player is None or best_player.fitness < population[sorted_incides[-1]].fitness: #         if best_player is None or best_player.fitness < population[sorted_incides[-1]].fitness:
+        if best_player is None or best_player.fitness < population[sorted_incides[-1]].fitness: # check if we have a new best player
 
             best_player = copy.deepcopy(population[sorted_incides[-1]])
             print(f"Best Player Fitness: {best_player.fitness}")
             save_best_player(population[sorted_incides[-1]])
-
-
 
         new_population = create_new_generation(population,fitness,population_size, activation_functions, crossover_rate, mutation_rate)
         game_result = population_play(new_population, games_num)
@@ -216,15 +216,16 @@ def create_evolution(population_size, generations_number, games_num, crossover_r
         fitness = new_fitness
 
 
+# function to print the information of the training 
 def print_info(population, fitness, generation, games_number):
     sorted_fitness, sorted_incides = sort_fitness(fitness)
     wins = []
-    for i in population:
+    for i in population: # calculate the win rate for the generation 
         wins.append(i.games_won/games_number *100)
 
     wins_avg = sum(wins)/len(wins)
     print("Generation number: \t", generation)
-    print("Best player fitness: \t", population[sorted_incides[-1]].fitness)# sorted_fitness[-1])
+    print("Best player fitness: \t", population[sorted_incides[-1]].fitness)
     print("Best player won games: \t", population[sorted_incides[-1]].games_won)
     print("Best player Avg win rate: \t", (population[sorted_incides[-1]].games_won)/games_number *100)
     print("Population win rate", wins_avg)
@@ -240,7 +241,7 @@ def save_best_player(player):
                         "Biases": player_biases,
                         "Activation_functions": player_activation}
 
-    player_file = open("testing_player/best1_random_player", "wb")
+    player_file = open("testing_players/best_randn_random_player", "wb")
     pickle.dump(palyer_attributes, player_file)
     player_file.close()
 
@@ -256,16 +257,29 @@ def load_best_player(player_file):
     return(best_player)
 
 
-if __name__== "__main__":
-    games_no = 50
-    population_no = 50
-    generations_no = 2000 
-    mutation_rate = 0.02
-    crossover_rate = 1
+# function to save the last generation of training model to a file -for testing-
+def save_last_generation(population):
+    generation_list = []
+    for player in population:
+        player_weights = player.getNN().get_weights()
+        player_biases = player.getNN().get_biases()
+        player_activation = player.getNN().functions
+        player_attributes = {"Weights": player_weights,
+                        "Biases": player_biases,
+                        "Activation_functions": player_activation}
+        generation_list.append(player_attributes)
 
-    shape = [27, 100, 27]
+    generation_file = open("best_random_generation", "wb")
+    pickle.dump(generation_list, generation_file)
+    generation_file.close()
+
+
+
+if __name__== "__main__":
+    games_no = 100
+    population_no = 50
+    generations_no = 5000 
+    mutation_rate = 0.03
+    crossover_rate = 0.9
     
     create_evolution(population_no, generations_no, games_no, crossover_rate, mutation_rate)
-    #my_best = load_best_player("best_player")
-    #results = play_games(my_best, cc.RandomPlayer(), 100)
-    #print(results)

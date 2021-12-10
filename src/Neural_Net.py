@@ -1,13 +1,10 @@
 
+# This program is the structure of the neural network and the player class
+
 import numpy as np
 from types import FunctionType
-import random
-from numpy.core.fromnumeric import argmax
-from numpy.lib.utils import safe_eval
 import itertools
 import copy
-
-from numpy.random.mtrand import f
 
 
 #activation functions
@@ -27,15 +24,15 @@ def init_weights_biases(net_shape, activation_func=None):
     weights = []
     biases = []
     for i,j in zip(net_shape,net_shape[1:]):
-        weight = np.random.rand(j, i) # 0.10 *
-        bias = np.random.rand(j, 1) # 0.20 *
+        weight =  np.random.randn(j, i)
+        bias =  np.random.randn(j, 1)
         weights.append(weight)
         biases.append(bias)
     
     return weights, biases
 
 
-# class to calculate a layer of a neural netork
+# class to calculate a layer of a neural network
 class Layer:
     
     def __init__(self, weights: np.matrix, biases: np.matrix, activation_func: FunctionType ):
@@ -48,7 +45,7 @@ class Layer:
         
 
     def forward(self, inputs):
-        self.output = np.dot( self.weights, inputs) + self.biases
+        self.output = np.dot(self.weights, inputs) + self.biases
         return self.activation_func(self.output)
 
     def getMatrix(self):
@@ -109,9 +106,7 @@ class NNPlayer():
         self.NNet = NeuralNetwork(self.weights_list, self.biases_list, self.functions) 
         self.possible_moves = [p for p in itertools.product([0, 1, 2], repeat=3)] # get all the combination of the possible moves
 
-
     def play(self, myState, oppState, myScore, oppScore, turn, length, nPips):
-        #Net1 = NeuralNetwork(self.weights_list, self.biases_list, self.functions)
         my_state_matrix = np.matrix(np.reshape(np.array(myState).flatten(), (27,1))) # get the board status as a matrix to be the input of NN
         oppo_state_matrix = np.matrix(np.reshape(np.array(oppState).flatten(), (27,1))) # get the board status as a matrix to be the input of NN
 
@@ -127,15 +122,3 @@ class NNPlayer():
     @staticmethod
     def getSpecs(): # return the shape of the input neurons and the output neurons
         return (27,27)
-############################################################# Main (for testing) #####################################################################################        
-
-
-# activation_functions = [Relu, Relu]
-# shape = [3, 4, 3]
-# w3,b3 = init_weights_biases(shape)
-# Net1 = NeuralNetwork(w3, b3, activation_functions)
-# X = np.matrix("3; 3; 3")
-# output1 = Net1.propagate(X)
-# Net1.get_biases()
-# #print(output1)
-
